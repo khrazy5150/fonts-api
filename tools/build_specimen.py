@@ -18,6 +18,7 @@ Usage:
     python3 tools/build_specimen.py                 # -> build/specimen.html
     python3 tools/build_specimen.py --open          # and open it
     python3 tools/build_specimen.py --out /tmp/x.html
+    python3 tools/build_specimen.py --publish     # -> https://juniorbay.com/font-specimen.html
 """
 
 import argparse
@@ -31,6 +32,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from font_definitions import VARIABLE_FONTS  # noqa: E402
 
 SERVICE = "https://fonts.juniorbay.com"
+HOMEPAGE_BUCKET = "jb-homepage-prod-150544707159"
+PUBLISHED_NAME = "font-specimen.html"
 PANGRAM = "Sphinx of black quartz, judge my vow"
 SAMPLE = ("Every preset carries a pairing, and a page downloads only its own. "
           "The quick brown fox jumps over the lazy dog. 0123456789 — $24.22 · £19 · €31")
@@ -85,6 +88,10 @@ def build(rows: dict[str, dict]) -> str:
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Font service specimen — {len(names)} families</title>
+<!-- Hosted on juniorbay.com so it can load from fonts.juniorbay.com (a claude.ai artifact cannot: its CSP
+     admits stylesheets from Google Fonts only). It is an internal tool on a marketing domain, so it must
+     never be indexed. -->
+<meta name="robots" content="noindex,nofollow">
 <link rel="stylesheet" href="{html.escape(link)}">
 <style>
   :root {{ --ground:#fbfbfa; --panel:#fff; --ink:#16181d; --muted:#6b7280; --line:#e5e7eb; --warn:#9a3412; --warn-bg:#fff4ec; }}
@@ -123,6 +130,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--out", default="build/specimen.html")
     parser.add_argument("--open", action="store_true", help="open it when written")
+    parser.add_argument("--publish", action="store_true",
+                        help="upload to juniorbay.com/font-specimen.html (noindex, short cache)")
     args = parser.parse_args()
 
     rows = families()
@@ -135,8 +144,19 @@ def main() -> None:
           f"{sum(1 for r in rows.values() if r['variable'])} variable")
     if faux:
         print(f"  no real 700 face (flagged in the page): {', '.join(faux)}")
+    if args.publish:
+        # A SHORT cache, unlike the fonts themselves: this page is regenerated whenever the catalogue
+        # changes, and `immutable` would strand the old one at every edge for a year.
+        subprocess.run([
+            "aws", "s3", "cp", args.out, f"s3://{HOMEPAGE_BUCKET}/{PUBLISHED_NAME}",
+            "--content-type", "text/html; charset=utf-8",
+            "--cache-control", "public, max-age=300",
+        ], check=True)
+        print(f"  published: https://juniorbay.com/{PUBLISHED_NAME}")
+
     if args.open:
-        subprocess.run(["open", args.out], check=False)
+        target = f"https://juniorbay.com/{PUBLISHED_NAME}" if args.publish else args.out
+        subprocess.run(["open", target], check=False)
 
 
 if __name__ == "__main__":
