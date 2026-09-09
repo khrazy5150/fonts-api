@@ -73,7 +73,7 @@ def build(rows: dict[str, dict]) -> str:
                 else ", ".join(str(w) for w in sorted(row["weights"])))
         warn = ("" if row["has_real_bold"] else
                 '<p class="warn">No 700 face — bold here is synthesised by the browser</p>')
-        cards.append(f"""    <section class="card">
+        cards.append(f"""    <li class="card">
       <header>
         <h2 style="font-family:{stack},sans-serif">{html.escape(name)}</h2>
         <p class="meta">{kind} · weights {span} · {len(row['files'])} file(s) · {', '.join(sorted(row['styles']))}</p>
@@ -82,12 +82,12 @@ def build(rows: dict[str, dict]) -> str:
       <p class="body" style="font-family:{stack},sans-serif">{html.escape(SAMPLE)}</p>
       <p class="body bold" style="font-family:{stack},sans-serif">{html.escape(PANGRAM)}</p>
       {warn}
-    </section>""")
+    </li>""")
 
     return f"""<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Font service specimen — {len(names)} families</title>
+<title>Font service specimen</title>
 <!-- Hosted on juniorbay.com so it can load from fonts.juniorbay.com (a claude.ai artifact cannot: its CSP
      admits stylesheets from Google Fonts only). It is an internal tool on a marketing domain, so it must
      never be indexed. -->
@@ -104,9 +104,15 @@ def build(rows: dict[str, dict]) -> str:
   .wrap {{ max-width:64rem; margin:0 auto; padding:3rem 1.25rem 5rem; }}
   h1 {{ font-size:1.75rem; margin:0 0 .4rem; font-weight:600; }}
   .lede {{ color:var(--muted); margin:0 0 2.5rem; max-width:62ch; }}
-  .card {{ background:var(--panel); border:1px solid var(--line); border-radius:.6rem;
-    padding:1.4rem 1.5rem; margin-bottom:1rem; }}
+  .cards {{ list-style:none; counter-reset:family; margin:0; padding:0; }}
+  .card {{ counter-increment:family; background:var(--panel); border:1px solid var(--line);
+    border-radius:.6rem; padding:1.4rem 1.5rem; margin-bottom:1rem; }}
+  /* The number comes from a CSS counter, not from the generator: it cannot disagree with how many cards
+     are actually on the page, and the last one IS the total. */
   .card h2 {{ margin:0; font-size:1.5rem; font-weight:700; }}
+  .card h2::before {{ content:counter(family) "."; margin-right:.5rem; color:var(--muted); font-weight:400;
+    font-size:.7em; font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-variant-numeric:tabular-nums; }}
   .meta {{ margin:.2rem 0 1rem; font-size:.75rem; color:var(--muted);
     font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }}
   .display {{ font-size:1.9rem; line-height:1.25; margin:0 0 .8rem; font-weight:400; }}
@@ -117,11 +123,15 @@ def build(rows: dict[str, dict]) -> str:
 </style></head><body>
 <div class="wrap">
   <h1>Font service specimen</h1>
-  <p class="lede">{len(names)} families, every one rendered by <code>{SERVICE}</code> itself rather than by
-  Google — so what you see is the bytes the service actually serves. Each shows the family name set in
-  itself, a display line, body text with numerals and currency, and the same line at 700 so a missing bold
-  face is visible rather than merely synthesised.</p>
+  <p class="lede">Every family <code>{SERVICE}</code> can serve, rendered by the service itself rather than
+  by Google — so what you see is the bytes it actually serves. Each shows the family name set in itself, a
+  display line, body text with numerals and currency, and the same line at 700 so a missing bold face is
+  visible rather than merely synthesised.</p>
+  <p class="lede">The list is numbered, so the last number is the total. Nothing here states a count that
+  could disagree with what is on the page.</p>
+  <ol class="cards">
 {chr(10).join(cards)}
+  </ol>
 </div></body></html>
 """
 
