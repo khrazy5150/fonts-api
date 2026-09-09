@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+    Stack Name: fonts-api 
+    Description: An AWS SAM application that serves custom font stylesheets on demand.
+
+Globals:
+    Function:
+        Timeout: 30
+
+Resources:
+    # A serverless function that dynamically generates CSS
+    FontApiFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: src/
+            Handler: app.lambda_handler
+            Runtime: python3.9
+            MemorySize: 512
+            Architectures:
+                - x86_64
+            Environment:
+                Variables:
+                    # Source of the font FILES for `fs=true`, which embeds them in the stylesheet as
+                    # data: URIs. Same bucket the juniorbay.com distribution serves /fonts/* from.
+                    FONT_BUCKET: jb-homepage-prod-150544707159
+                    FONT_PREFIX: fonts
+            Policies:
+                - S3ReadPolicy:
+                    BucketName: jb-homepage-prod-150544707159
+            Events:
+                GetCss:
+                    Type: Api
+                    Properties:
+                        Path: /
+                        Method: GET
+                        RestApiId: !Ref FontsApi
+
+    # The API Gateway resource to expose the Lambda function
+    FontsApi:
+        Type: AWS::Serverless::Api
+        Properties:
+            Name: FontsApi
+            StageName: Prod
+            Cors:
+                AllowHeaders: "'*'"
+                AllowOrigin: "'*'"
+                AllowMethods: "'GET'"
+            DefinitionBody:
+                openapi: "3.0.1"
+                info:
+                    title: "Fonts API"
+                    version: "1.0"
+                paths:
+                    "/":
+                        get:
+                            x-amazon-apigateway-integration:
+                                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FontApiFunction.Arn}/invocations'
+                                httpMethod: "POST"
+                                type: "aws_proxy"
+                            parameters:
+                                - name: family
+                                  in: query
+                                  required: true
+                                  schema:
+                                    type: string
+                            responses:
+                                "200":
+                                    description: "A successful response"
+                                    content:
+                                        text/css:
+                                            schema:
+                                                type: string
+
+Outputs:
+    FontsApiEndpoint:
+        Description: "API Gateway endpoint URL for the fonts API"
+        Value: !Sub "https://${FontsApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"

@@ -1,0 +1,159 @@
+{
+  "CallerReference": "fonts-create-1760708493",
+  "Aliases": {
+    "Quantity": 0
+  },
+  "DefaultRootObject": "",
+  "Origins": {
+    "Quantity": 1,
+    "Items": [
+      {
+        "Id": "S3-jb-fonts",
+        "DomainName": "juniorbay.com",
+        "OriginPath": "/fonts",
+        "CustomHeaders": {
+          "Quantity": 0
+        },
+        "CustomOriginConfig": {
+          "HTTPPort": 80,
+          "HTTPSPort": 443,
+          "OriginProtocolPolicy": "https-only",
+          "OriginSslProtocols": {
+            "Quantity": 1,
+            "Items": [
+              "TLSv1.2"
+            ]
+          },
+          "OriginReadTimeout": 30,
+          "OriginKeepaliveTimeout": 5
+        },
+        "ConnectionAttempts": 3,
+        "ConnectionTimeout": 10,
+        "OriginShield": {
+          "Enabled": false
+        },
+        "OriginAccessControlId": ""
+      }
+    ]
+  },
+  "OriginGroups": {
+    "Quantity": 0
+  },
+  "DefaultCacheBehavior": {
+    "TargetOriginId": "S3-jb-fonts",
+    "TrustedSigners": {
+      "Enabled": false,
+      "Quantity": 0
+    },
+    "TrustedKeyGroups": {
+      "Enabled": false,
+      "Quantity": 0
+    },
+    "ViewerProtocolPolicy": "redirect-to-https",
+    "AllowedMethods": {
+      "Quantity": 2,
+      "Items": [
+        "HEAD",
+        "GET"
+      ],
+      "CachedMethods": {
+        "Quantity": 2,
+        "Items": [
+          "HEAD",
+          "GET"
+        ]
+      }
+    },
+    "SmoothStreaming": false,
+    "Compress": true,
+    "LambdaFunctionAssociations": {
+      "Quantity": 0
+    },
+    "FunctionAssociations": {
+      "Quantity": 0
+    },
+    "FieldLevelEncryptionId": "",
+    "CachePolicyId": "abdb5366-924a-4f27-a239-402e114cb1da",
+    "ResponseHeadersPolicyId": "eaab4381-ed33-4a86-88ca-d9558dc6cd63",
+    "GrpcConfig": {
+      "Enabled": false
+    }
+  },
+  "CacheBehaviors": {
+    "Quantity": 1,
+    "Items": [
+      {
+        "PathPattern": "*.woff2",
+        "TargetOriginId": "S3-jb-fonts",
+        "TrustedSigners": {
+          "Enabled": false,
+          "Quantity": 0
+        },
+        "TrustedKeyGroups": {
+          "Enabled": false,
+          "Quantity": 0
+        },
+        "ViewerProtocolPolicy": "redirect-to-https",
+        "AllowedMethods": {
+          "Quantity": 2,
+          "Items": [
+            "HEAD",
+            "GET"
+          ],
+          "CachedMethods": {
+            "Quantity": 2,
+            "Items": [
+              "HEAD",
+              "GET"
+            ]
+          }
+        },
+        "SmoothStreaming": false,
+        "Compress": true,
+        "LambdaFunctionAssociations": {
+          "Quantity": 0
+        },
+        "FunctionAssociations": {
+          "Quantity": 0
+        },
+        "FieldLevelEncryptionId": "",
+        "CachePolicyId": "c1e97148-ab29-4f63-9b89-a4319406c00e",
+        "ResponseHeadersPolicyId": "eaab4381-ed33-4a86-88ca-d9558dc6cd63",
+        "GrpcConfig": {
+          "Enabled": false
+        }
+      }
+    ]
+  },
+  "CustomErrorResponses": {
+    "Quantity": 0
+  },
+  "Comment": "Fonts distribution (no alias yet) for fonts.juniorbay.com",
+  "Logging": {
+    "Enabled": false,
+    "IncludeCookies": false,
+    "Bucket": "",
+    "Prefix": ""
+  },
+  "PriceClass": "PriceClass_100",
+  "Enabled": true,
+  "ViewerCertificate": {
+    "ACMCertificateArn": "arn:aws:acm:us-east-1:150544707159:certificate/1a72b7c6-bf14-40d2-8e07-c2d2df84c70a",
+    "SSLSupportMethod": "sni-only",
+    "MinimumProtocolVersion": "TLSv1.2_2021",
+    "Certificate": "arn:aws:acm:us-east-1:150544707159:certificate/1a72b7c6-bf14-40d2-8e07-c2d2df84c70a",
+    "CertificateSource": "acm",
+    "CloudFrontDefaultCertificate": false
+  },
+  "Restrictions": {
+    "GeoRestriction": {
+      "RestrictionType": "none",
+      "Quantity": 0
+    }
+  },
+  "WebACLId": "",
+  "HttpVersion": "http2",
+  "IsIPV6Enabled": true,
+  "ContinuousDeploymentPolicyId": "",
+  "Staging": false
+}
