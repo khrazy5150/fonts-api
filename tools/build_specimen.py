@@ -61,8 +61,10 @@ def families() -> dict[str, dict]:
 
 def build(rows: dict[str, dict]) -> str:
     names = sorted(rows)
-    query = "&".join(f"family={urllib.parse.quote(n)}:400,700" for n in names)
-    link = f"{SERVICE}/?{query}&fs=true"
+    # `family=*` rather than naming all 35: the service expands the wildcard from the same catalogue this
+    # tool reads, so the URL cannot fall out of step with the page, and a family added tomorrow is requested
+    # without touching this line.
+    link = f"{SERVICE}/?family=*:400,700&fs=true"
 
     cards = []
     for name in names:

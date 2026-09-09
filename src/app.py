@@ -194,6 +194,25 @@ def extract_all_family_params(event):
     
     return family_params
 
+WILDCARD = "*"
+
+
+def expand_wildcard(all_families):
+    """`family=*` -> every family in the catalogue, sorted.
+
+    NOT spelled `all=true`: that already means "every VARIANT of the families you named" (Lato goes from one
+    face to ten), so overloading it would make `family=Lato&all=true` ambiguous. The two compose instead --
+    `family=*&all=true` is every family and every variant.
+
+    Sorted, because the request URL is a cache key: two orderings of the same set must not be two URLs.
+
+    Worth knowing before pointing a page at this: with `fs=true` the whole catalogue is a single ~2.5 MB
+    response and several seconds of Lambda. It exists for the specimen page and for smoke-testing the
+    service, not for a landing page, which should ask for the two families it actually renders.
+    """
+    return sorted({font["font_family_name"] for font in VARIABLE_FONTS.values()})
+
+
 def parse_multiple_families(event):
     """
     Parse multiple font families from the event
@@ -202,7 +221,18 @@ def parse_multiple_families(event):
     - ?family=Lato:400,700&family=Open+Sans:200,400
     """
     family_specs = extract_all_family_params(event)
-    
+
+    # A bare `*` anywhere replaces the whole list: asking for everything plus something else is the same
+    # request, and de-duplicating afterwards would be doing it twice.
+    specs_without_variants = [spec.split(":", 1)[0].strip() for spec in family_specs]
+    if WILDCARD in specs_without_variants:
+        weights = ""
+        for spec in family_specs:
+            if spec.split(":", 1)[0].strip() == WILDCARD and ":" in spec:
+                weights = ":" + spec.split(":", 1)[1]   # `*:400,700` keeps the weights it was asked for
+                break
+        family_specs = [f"{name}{weights}" for name in expand_wildcard(VARIABLE_FONTS)]
+
     all_families = []
     
     for family_spec in family_specs:
@@ -285,6 +315,7 @@ def lambda_handler(event, context):
     1. Multiple font families in one request (?family=Lato:400,700&family=Open+Sans:200,400)
     2. Google Fonts-style weight specifications (?family=Comic+Relief:400,700)
     3. Loading all variants for families (?family=Comic+Relief&all=true)
+    3b. The whole catalogue (?family=*, or ?family=*:400,700 to fix the weights)
     4. Original single font loading
     """
     try:
